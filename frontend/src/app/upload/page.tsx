@@ -1,12 +1,156 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, MapPin, Calendar, Euro, Coins, Check, Loader2 } from 'lucide-react';
+import { Sparkles, MapPin, Calendar, Euro, Coins, Check, Loader2, Cpu, Eye, Palette, Ruler, Hand, Tag, Zap } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ImageUpload from '@/components/ImageUpload';
 import { analyzeGloveImage, uploadGlove, GloveAnalysis } from '@/lib/api';
+
+// AI Analysis Animation Component
+function AIAnalysisOverlay({ 
+  isAnalyzing, 
+  analysis, 
+  onContinue 
+}: { 
+  isAnalyzing: boolean; 
+  analysis: GloveAnalysis | null;
+  onContinue: () => void;
+}) {
+  const [showResults, setShowResults] = useState(false);
+  const [revealedItems, setRevealedItems] = useState<number>(0);
+
+  useEffect(() => {
+    if (analysis && !isAnalyzing) {
+      setShowResults(true);
+      // Stagger reveal each detected item
+      const items = 6;
+      for (let i = 0; i <= items; i++) {
+        setTimeout(() => setRevealedItems(i), i * 300);
+      }
+    }
+  }, [analysis, isAnalyzing]);
+
+  if (!isAnalyzing && !showResults) return null;
+
+  const detectedItems = analysis ? [
+    { icon: Eye, label: 'Valid Glove', value: analysis.is_valid_glove ? '✓ Detected' : '✗ Not a glove', color: analysis.is_valid_glove ? 'text-glove-500' : 'text-red-500' },
+    { icon: Tag, label: 'Brand', value: analysis.brand || 'Unknown', color: 'text-postal-500' },
+    { icon: Palette, label: 'Color', value: analysis.color, color: 'text-blue-500' },
+    { icon: Ruler, label: 'Size', value: analysis.size.toUpperCase(), color: 'text-purple-500' },
+    { icon: Hand, label: 'Hand', value: analysis.side === 'left' ? 'Left' : analysis.side === 'right' ? 'Right' : 'Unknown', color: 'text-orange-500' },
+    { icon: Euro, label: 'Est. Value', value: analysis.suggested_price_eur ? `€${analysis.suggested_price_eur}` : 'N/A', color: 'text-glove-500' },
+  ] : [];
+
+  const confidence = analysis?.is_valid_glove && analysis?.moderation_passed ? 92 : 0;
+
+  return (
+    <div className="fixed inset-0 bg-berlin-900/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-postal-500 to-postal-600 p-6 text-white">
+          <div className="flex items-center gap-3">
+            <div className={`p-3 bg-white/20 rounded-xl ${isAnalyzing ? 'animate-pulse' : ''}`}>
+              <Cpu size={28} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">Claude AI Analysis</h2>
+              <p className="text-postal-100 text-sm">
+                {isAnalyzing ? 'Scanning glove details...' : 'Analysis complete!'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Scanning animation */}
+        {isAnalyzing && (
+          <div className="p-8">
+            <div className="relative h-48 bg-berlin-100 rounded-xl overflow-hidden">
+              {/* Scanning line */}
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-postal-500 to-transparent animate-scan" 
+                     style={{ animation: 'scan 2s ease-in-out infinite' }} />
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <Loader2 size={48} className="animate-spin text-postal-500 mx-auto mb-3" />
+                  <p className="text-berlin-600 font-medium">Analyzing with Claude AI...</p>
+                  <p className="text-berlin-400 text-sm mt-1">Detecting brand, color, size</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Results */}
+        {showResults && analysis && (
+          <div className="p-6">
+            {/* Confidence meter */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-berlin-600">Detection Confidence</span>
+                <span className="text-2xl font-bold text-glove-500">{confidence}%</span>
+              </div>
+              <div className="h-3 bg-berlin-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-glove-400 to-glove-500 rounded-full transition-all duration-1000 ease-out"
+                  style={{ width: revealedItems > 0 ? `${confidence}%` : '0%' }}
+                />
+              </div>
+            </div>
+
+            {/* Detected items grid */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {detectedItems.map((item, index) => (
+                <div 
+                  key={item.label}
+                  className={`p-3 bg-berlin-50 rounded-xl border border-berlin-100 transition-all duration-300 ${
+                    revealedItems > index ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <item.icon size={16} className={item.color} />
+                    <span className="text-xs text-berlin-400 uppercase tracking-wide">{item.label}</span>
+                  </div>
+                  <p className={`font-semibold ${item.color}`}>{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Description */}
+            {analysis.description && revealedItems >= 6 && (
+              <div className="p-4 bg-postal-50 rounded-xl mb-6 animate-fade-in">
+                <p className="text-sm text-berlin-700 italic">"{analysis.description}"</p>
+              </div>
+            )}
+
+            {/* Continue button */}
+            <button
+              onClick={onContinue}
+              className={`w-full py-4 bg-glove-500 hover:bg-glove-600 text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${
+                revealedItems >= 6 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+              }`}
+            >
+              <Zap size={20} />
+              Continue with these details
+            </button>
+          </div>
+        )}
+      </div>
+
+      <style jsx>{`
+        @keyframes scan {
+          0%, 100% { top: 0; }
+          50% { top: 100%; }
+        }
+        .animate-scan {
+          animation: scan 2s ease-in-out infinite;
+        }
+      `}</style>
+    </div>
+  );
+}
 
 const SIZES = [
   { value: 'xs', label: 'XS' },
@@ -55,23 +199,33 @@ export default function UploadPage() {
     setError(null);
   };
 
+  const [showAIOverlay, setShowAIOverlay] = useState(false);
+
   const handleAnalyze = async () => {
     if (!file) return;
     
     setAnalyzing(true);
+    setShowAIOverlay(true);
     setError(null);
     
     try {
       const result = await analyzeGloveImage(file);
       setAnalysis(result);
+      setAnalyzing(false); // Stop analyzing but keep overlay to show results
       
       if (!result.is_valid_glove) {
-        setError('This doesn\'t appear to be a glove. Please upload a clear photo of a glove.');
+        setTimeout(() => {
+          setShowAIOverlay(false);
+          setError('This doesn\'t appear to be a glove. Please upload a clear photo of a glove.');
+        }, 2000);
         return;
       }
       
       if (!result.moderation_passed) {
-        setError(result.moderation_notes || 'Image failed moderation. Please upload a different photo.');
+        setTimeout(() => {
+          setShowAIOverlay(false);
+          setError(result.moderation_notes || 'Image failed moderation. Please upload a different photo.');
+        }, 2000);
         return;
       }
       
@@ -88,12 +242,16 @@ export default function UploadPage() {
         setFeeCurrency('eur');
       }
       
-      setStep('details');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to analyze image');
-    } finally {
       setAnalyzing(false);
+      setShowAIOverlay(false);
+      setError(err instanceof Error ? err.message : 'Failed to analyze image');
     }
+  };
+
+  const handleAIContinue = () => {
+    setShowAIOverlay(false);
+    setStep('details');
   };
 
   const handleClear = () => {
@@ -145,6 +303,15 @@ export default function UploadPage() {
   return (
     <>
       <Header />
+      
+      {/* AI Analysis Overlay */}
+      {showAIOverlay && (
+        <AIAnalysisOverlay 
+          isAnalyzing={analyzing}
+          analysis={analysis}
+          onContinue={handleAIContinue}
+        />
+      )}
       
       <main className="flex-1 py-8">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
