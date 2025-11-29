@@ -7,7 +7,7 @@ services:
     name: postalcodeworx-api
     runtime: python
     region: frankfurt
-    plan: free
+    plan: starter
     buildCommand: cd backend && pip install -r requirements.txt
     startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -31,7 +31,7 @@ services:
     name: postalcodeworx
     runtime: node
     region: frankfurt
-    plan: free
+    plan: starter
     buildCommand: cd frontend && npm install && npm run build
     startCommand: cd frontend && npm start
     envVars:
@@ -43,7 +43,7 @@ services:
 databases:
   - name: postalcodeworx-db
     region: frankfurt
-    plan: free
+    plan: starter
     databaseName: postalcodeworx
     user: postalcodeworx
 
