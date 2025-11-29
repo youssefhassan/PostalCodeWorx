@@ -20,7 +20,7 @@ services:
       - key: CORS_ORIGINS
         value: https://postalcodeworx.onrender.com,http://localhost:3000
       - key: PYTHON_VERSION
-        value: "3.11"
+        value: "3.11.0"
     disk:
       name: uploads
       mountPath: /app/uploads
