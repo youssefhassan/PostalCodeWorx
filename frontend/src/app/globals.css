@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground: #1e293b;
+  --background: #fef7ee;
+  --accent: #e87425;
+  --glove-green: #22c55e;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Satoshi', system-ui, sans-serif;
+}
+
+/* Smooth page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Glove pattern background */
+.glove-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e87425' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Gradient mesh background */
+.mesh-gradient {
+  background: 
+    radial-gradient(at 40% 20%, rgba(232, 116, 37, 0.15) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(34, 197, 94, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(232, 116, 37, 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, rgba(34, 197, 94, 0.08) 0px, transparent 50%);
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* Input focus ring */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: var(--accent);
+}
+
+/* File drop zone */
+.drop-zone {
+  border: 2px dashed rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.drop-zone:hover, .drop-zone.active {
+  border-color: var(--accent);
+  background-color: rgba(232, 116, 37, 0.05);
+}
+
+/* Postal code badge */
+.postal-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+/* Glove emoji animation */
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(20deg); }
+  75% { transform: rotate(-20deg); }
+}
+
+.wave-emoji {
+  display: inline-block;
+  animation: wave 2s ease-in-out infinite;
+  transform-origin: 70% 70%;
+}
+
+/* Stagger animation delays */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+
+
+
