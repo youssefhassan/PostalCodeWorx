@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
 import os
 import logging
 
@@ -14,8 +15,19 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: try to create tables, but don't crash if DB not ready
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created successfully")
+    except Exception as e:
+        logger.warning(f"Could not connect to database yet: {e}")
+    yield
+    # Shutdown
+    logger.info("Shutting down...")
+
 
 # Create FastAPI app
 app = FastAPI(
@@ -24,6 +36,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # Configure CORS - allow all for now (demo mode)
