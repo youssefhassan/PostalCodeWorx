@@ -501,6 +501,254 @@ Each verified entity receives a non-transferable (soulbound) NFT:
 
 ---
 
+## 🔧 Technical Implementation Details
+
+### Claude API Integration
+
+We leverage Claude's multimodal capabilities for intelligent content analysis:
+
+```mermaid
+flowchart LR
+    subgraph "Image Analysis Pipeline"
+        A[📸 Image Upload] --> B[Base64 Encoding]
+        B --> C[Claude Vision API]
+        C --> D{Analysis Type}
+        D --> E[🧤 Object Detection]
+        D --> F[📍 Location Verification]
+        D --> G[🛡️ Content Moderation]
+    end
+    
+    subgraph "Claude Responses"
+        E --> H[Brand, Color, Size, Material]
+        F --> I[Landmarks, Weather, Metadata]
+        G --> J[Spam, Inappropriate, Valid]
+    end
+    
+    H --> K[Confidence Score]
+    I --> K
+    J --> K
+```
+
+#### Claude API Usage Patterns
+
+```python
+# Structured JSON output from Claude Vision
+class GloveAnalysis(BaseModel):
+    brand: Optional[str]
+    color: str
+    size: Literal["xs", "s", "m", "l", "xl", "unknown"]
+    side: Literal["left", "right", "unknown"]
+    material: Optional[str]
+    suggested_price_eur: Optional[float]
+    description: str
+    is_valid_glove: bool
+    moderation_passed: bool
+    moderation_notes: Optional[str]
+
+# Vision API call with structured prompting
+message = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    messages=[{
+        "role": "user",
+        "content": [
+            {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": image_base64}},
+            {"type": "text", "text": ANALYSIS_PROMPT}
+        ]
+    }]
+)
+```
+
+### Full-Stack Architecture
+
+```mermaid
+graph TB
+    subgraph "Frontend (Next.js 14)"
+        A[App Router] --> B[Server Components]
+        A --> C[Client Components]
+        B --> D[API Routes]
+        C --> E[React Hooks]
+        E --> F[State Management]
+    end
+    
+    subgraph "Backend (FastAPI)"
+        G[REST API] --> H[Pydantic Schemas]
+        H --> I[SQLAlchemy ORM]
+        I --> J[PostgreSQL]
+        G --> K[Claude Service]
+        G --> L[Email Service]
+    end
+    
+    subgraph "External Services"
+        K --> M[Anthropic API]
+        L --> N[SMTP / SendGrid]
+    end
+    
+    D --> G
+    F --> D
+```
+
+### API Design (RESTful)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/api/gloves/analyze` | Analyze image with Claude | None |
+| `POST` | `/api/gloves/upload` | Create listing | Email |
+| `GET` | `/api/gloves/search` | Search with filters | None |
+| `GET` | `/api/gloves/{id}` | Get listing details | None |
+| `GET` | `/api/gloves/{id}/payment-info` | Get fee breakdown | None |
+| `POST` | `/api/gloves/{id}/contact` | Pay & contact finder | Email |
+| `POST` | `/api/gloves/{id}/report` | Report listing | None |
+| `GET` | `/api/gloves/stats/postal-codes` | Leaderboard data | None |
+
+### Dynamic Confidence Scoring
+
+```typescript
+// Frontend confidence calculation based on Claude's detection
+const calculateConfidence = (analysis: GloveAnalysis): number => {
+  if (!analysis.is_valid_glove || !analysis.moderation_passed) return 0;
+  
+  let score = 50; // Base score for valid glove
+  if (analysis.brand) score += 15;
+  if (analysis.color !== 'unknown') score += 10;
+  if (analysis.size !== 'unknown') score += 10;
+  if (analysis.side !== 'unknown') score += 10;
+  if (analysis.material) score += 5;
+  
+  return Math.min(score, 99);
+};
+```
+
+### Real-time UI Feedback
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Claude
+    
+    User->>Frontend: Upload image
+    Frontend->>Frontend: Show upload animation
+    Frontend->>Backend: POST /analyze
+    Backend->>Claude: Vision API call
+    
+    Note over Frontend: Scanning animation plays
+    
+    Claude-->>Backend: Analysis JSON
+    Backend-->>Frontend: Structured response
+    
+    Frontend->>Frontend: Staggered reveal animation
+    Note over Frontend: Each field appears<br/>with 300ms delay
+    
+    Frontend->>Frontend: Confidence meter fills
+    Frontend->>User: Show "Continue" button
+```
+
+### Database Schema
+
+```mermaid
+erDiagram
+    GLOVE_LISTINGS ||--o{ GLOVE_REPORTS : has
+    GLOVE_LISTINGS ||--o{ CONTACT_REQUESTS : has
+    USERS ||--o{ GLOVE_LISTINGS : creates
+    
+    GLOVE_LISTINGS {
+        int id PK
+        string photo_url
+        string brand
+        string color
+        enum size
+        enum side
+        string postal_code
+        datetime found_date
+        string finder_email
+        float fee_amount
+        enum fee_currency
+        float confidence_score
+        enum status
+        text ai_analysis
+        datetime created_at
+    }
+    
+    GLOVE_REPORTS {
+        int id PK
+        int listing_id FK
+        string reason
+        text description
+        string reporter_ip
+        datetime created_at
+    }
+    
+    CONTACT_REQUESTS {
+        int id PK
+        int listing_id FK
+        string requester_email
+        text message
+        float fee_paid
+        float platform_fee
+        boolean is_paid
+        boolean message_sent
+        datetime created_at
+    }
+    
+    USERS {
+        int id PK
+        string email
+        string postal_code
+        string display_name
+        int postaal_balance
+        boolean is_active
+        datetime created_at
+    }
+```
+
+### Performance Optimizations
+
+| Optimization | Implementation |
+|--------------|----------------|
+| Image caching | 1-year cache headers on served images |
+| Lazy loading | Next.js Image component with blur placeholders |
+| API response caching | PostgreSQL query optimization |
+| Parallel requests | Promise.all for listing + payment-info |
+| Code splitting | Next.js automatic code splitting |
+
+### Error Handling & Resilience
+
+```python
+# Graceful degradation for AI failures
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database connected")
+    except Exception as e:
+        logger.warning(f"DB not ready: {e}")
+        # App still starts, AI features work without DB
+    yield
+
+# Claude API error handling
+try:
+    analysis = await claude_service.analyze_glove_image(image_base64, media_type)
+except anthropic.APIError as e:
+    return GloveAnalysisResponse(
+        is_valid_glove=False,
+        color="unknown",
+        moderation_passed=False,
+        moderation_notes=f"Analysis unavailable: {str(e)}"
+    )
+```
+
+### Developer Experience Focus
+
+- **Type Safety**: Full TypeScript frontend, Pydantic backend
+- **API Documentation**: Auto-generated OpenAPI docs at `/docs`
+- **Hot Reload**: Development with instant feedback
+- **Error Messages**: User-friendly error responses
+- **Logging**: Structured logging for debugging
+
+---
+
 ## 🚀 Next Steps
 
 1. **Now:** Polish Lost & Found MVP, gather feedback
