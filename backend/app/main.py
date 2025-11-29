@@ -18,12 +18,14 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: try to create tables, but don't crash if DB not ready
+    # Startup: create directories and tables
     try:
+        os.makedirs(settings.upload_dir, exist_ok=True)
+        logger.info(f"Upload directory ready: {settings.upload_dir}")
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created successfully")
     except Exception as e:
-        logger.warning(f"Could not connect to database yet: {e}")
+        logger.error(f"Startup error: {e}")
     yield
     # Shutdown
     logger.info("Shutting down...")

@@ -3,8 +3,8 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    # Database - use SQLite stored on disk
-    database_url: str = "sqlite:////app/data/postalcodeworx.db"
+    # Database - use SQLite (relative path works everywhere)
+    database_url: str = "sqlite:///postalcodeworx.db"
     
     # Anthropic Claude API
     anthropic_api_key: str = ""
@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     
     # Upload settings
     max_upload_size: int = 5 * 1024 * 1024  # 5MB
-    upload_dir: str = "./uploads"
+    upload_dir: str = "/app/data/uploads"
     
     # Business logic
     platform_fee_percentage: float = 0.20  # 20% fee on EUR transactions
