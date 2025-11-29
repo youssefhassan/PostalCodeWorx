@@ -43,7 +43,7 @@ services:
 databases:
   - name: postalcodeworx-db
     region: frankfurt
-    plan: starter
+    plan: basic-256mb
     databaseName: postalcodeworx
     user: postalcodeworx
 
