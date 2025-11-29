@@ -3,8 +3,8 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    # Database
-    database_url: str = "postgresql://postalcodeworx:postalcodeworx_dev@localhost:5432/postalcodeworx"
+    # Database - use SQLite stored on disk
+    database_url: str = "sqlite:////app/data/postalcodeworx.db"
     
     # Anthropic Claude API
     anthropic_api_key: str = ""

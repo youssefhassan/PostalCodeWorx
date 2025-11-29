@@ -13,17 +13,13 @@ services:
     envVars:
       - key: ANTHROPIC_API_KEY
         sync: false  # You'll enter this manually
-      - key: DATABASE_URL
-        fromDatabase:
-          name: postalcodeworx-db
-          property: connectionString
       - key: CORS_ORIGINS
         value: https://postalcodeworx.onrender.com,http://localhost:3000
       - key: PYTHON_VERSION
         value: "3.11.0"
     disk:
-      name: uploads
-      mountPath: /app/uploads
+      name: data
+      mountPath: /app/data
       sizeGB: 1
 
   # Next.js Frontend
@@ -40,10 +36,5 @@ services:
       - key: NODE_VERSION
         value: "20"
 
-databases:
-  - name: postalcodeworx-db
-    region: frankfurt
-    plan: basic-256mb
-    databaseName: postalcodeworx
-    user: postalcodeworx
+# Using SQLite for simplicity - no external database needed
 
