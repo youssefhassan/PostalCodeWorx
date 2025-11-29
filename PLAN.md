@@ -317,10 +317,173 @@ pie title Revenue Model
 - Confidence score decay on reports
 - Auto-removal below 30% confidence
 
-### Address Verification (for Collabs)
-- Utility bill upload
-- Postcard verification
-- Bank statement verification
+---
+
+## 🔗 Decentralized Verification Network
+
+### Vision
+Verification should not rely on a central authority. Instead, we use a network of community validators, cryptographic proofs, and blockchain anchoring to create trustless verification.
+
+### Architecture
+
+```mermaid
+graph TB
+    subgraph "User Actions"
+        A[📸 Upload Photo] --> B[🏠 Claim Location]
+        C[👤 Register as Provider] --> D[📍 Claim Address]
+    end
+    
+    subgraph "Decentralized Verification Layer"
+        B --> E[🤖 AI Analysis Node]
+        B --> F[👥 Community Validators]
+        B --> G[📡 GPS Oracle]
+        
+        D --> H[🏘️ Neighbor Attestations]
+        D --> I[🔐 ZK Proof of Address]
+        D --> J[📬 Physical Mail Verification]
+        
+        E --> K[⚖️ Consensus Layer]
+        F --> K
+        G --> K
+        H --> K
+        I --> K
+        J --> K
+    end
+    
+    subgraph "Blockchain Anchoring"
+        K --> L[📜 Verification Proof]
+        L --> M[⛓️ Store on Chain]
+        M --> N[🪙 Mint Verification NFT]
+    end
+```
+
+### Verification Methods
+
+#### 1. Photo Location Verification
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant AI Node
+    participant Validators
+    participant Chain
+    
+    User->>AI Node: Upload photo + claim postal code
+    AI Node->>AI Node: Analyze landmarks, weather, metadata
+    AI Node->>Validators: Request community validation
+    
+    par Parallel Validation
+        Validators->>Validators: 3+ locals verify "Yes, this is 10115"
+    and
+        AI Node->>AI Node: Cross-reference with known landmarks
+    end
+    
+    Validators-->>AI Node: Attestations collected
+    AI Node->>Chain: Submit verification proof
+    Chain->>User: Issue Verified Photo NFT
+```
+
+#### 2. Address Verification (ZK Proofs)
+
+```mermaid
+flowchart LR
+    subgraph "Private Data (never shared)"
+        A[🏠 Full Address]
+        B[📄 Utility Bill]
+        C[🏦 Bank Statement]
+    end
+    
+    subgraph "ZK Proof Generation"
+        A --> D[🔐 Generate ZK Proof]
+        B --> D
+        C --> D
+        D --> E[✅ Proof: "User lives in 10115"]
+    end
+    
+    subgraph "Public Verification"
+        E --> F[⛓️ On-chain verification]
+        F --> G[🏷️ Verified Resident Badge]
+    end
+    
+    Note over A,C: User's actual address<br/>is NEVER revealed
+```
+
+### Validator Network
+
+```mermaid
+pie title Validator Types
+    "AI Nodes (Claude)" : 30
+    "Community Validators" : 40
+    "GPS/Location Oracles" : 15
+    "Government Data Oracles" : 15
+```
+
+| Validator Type | Role | Reward |
+|----------------|------|--------|
+| 🤖 AI Nodes | Analyze images, detect spam | Gas fees |
+| 👥 Community Validators | Verify local photos/addresses | Postaal coins |
+| 📡 GPS Oracles | Provide location data | Gas fees |
+| 🏛️ Gov Data Oracles | Cross-reference postal data | Subscription |
+
+### Staking & Incentives
+
+```mermaid
+flowchart TD
+    A[Become Validator] --> B[Stake 100 Postaal]
+    B --> C{Validate Correctly?}
+    C -->|Yes| D[Earn 2 Postaal per validation]
+    C -->|No| E[Lose stake, reputation down]
+    D --> F[Build reputation]
+    F --> G[Higher priority validations]
+    G --> H[More earnings]
+```
+
+### Blockchain Options
+
+| Chain | Pros | Cons |
+|-------|------|------|
+| **Polygon** | Low fees, Ethereum compatible | Centralization concerns |
+| **Arbitrum** | Low fees, strong ecosystem | Still relatively new |
+| **Base** | Coinbase backing, growing fast | Newer chain |
+| **Solana** | Very fast, low fees | Different ecosystem |
+| **Custom L2** | Full control | Complex to build |
+
+### Data Storage
+
+```mermaid
+graph LR
+    subgraph "Decentralized Storage"
+        A[📸 Photos] --> B[IPFS / Filecoin]
+        C[📜 Verification Proofs] --> D[Blockchain]
+        E[🔐 ZK Proofs] --> D
+    end
+    
+    subgraph "Centralized (for speed)"
+        F[🔍 Search Index] --> G[PostgreSQL]
+        H[💬 Messages] --> G
+    end
+    
+    B -.-> |CID reference| D
+    D -.-> |Proof verification| G
+```
+
+### Verification NFTs
+
+Each verified entity receives a non-transferable (soulbound) NFT:
+
+| NFT Type | Meaning | Benefits |
+|----------|---------|----------|
+| 🏷️ Verified Resident | Proven to live in postal code | Access local-only features |
+| 📸 Verified Photographer | Photos consistently verified | Featured in gallery |
+| 🔧 Verified Provider | Address-verified service provider | Trust badge on profile |
+| 🏆 Top Contributor | High reputation in community | Governance voting rights |
+
+### Privacy First
+
+- **Zero-Knowledge Proofs**: Prove you live somewhere without revealing your address
+- **Selective Disclosure**: Share only postal code, not full address
+- **Right to be Forgotten**: Burn your verification NFT anytime
+- **No Central Database**: Verification proofs on-chain, not in our DB
 
 ---
 
