@@ -43,7 +43,18 @@ function AIAnalysisOverlay({
     { icon: Euro, label: 'Est. Value', value: analysis.suggested_price_eur ? `€${analysis.suggested_price_eur}` : 'N/A', color: 'text-glove-500' },
   ] : [];
 
-  const confidence = analysis?.is_valid_glove && analysis?.moderation_passed ? 92 : 0;
+  // Calculate confidence based on what Claude detected
+  const calculateConfidence = () => {
+    if (!analysis?.is_valid_glove || !analysis?.moderation_passed) return 0;
+    let score = 50; // Base score for valid glove
+    if (analysis.brand) score += 15;
+    if (analysis.color && analysis.color !== 'unknown') score += 10;
+    if (analysis.size && analysis.size !== 'unknown') score += 10;
+    if (analysis.side && analysis.side !== 'unknown') score += 10;
+    if (analysis.material) score += 5;
+    return Math.min(score, 99); // Cap at 99%
+  };
+  const confidence = calculateConfidence();
 
   return (
     <div className="fixed inset-0 bg-berlin-900/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
