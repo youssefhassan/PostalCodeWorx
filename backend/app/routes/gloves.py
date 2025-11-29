@@ -267,11 +267,11 @@ async def get_glove_listing(
             contact_unlocked = True
             finder_email = listing.finder_email
     
-    return GloveListingDetail(
-        **{k: v for k, v in listing.__dict__.items() if not k.startswith("_")},
-        finder_email=finder_email,
-        contact_unlocked=contact_unlocked
-    )
+    # Build response, excluding internal fields and overriding finder_email
+    listing_dict = {k: v for k, v in listing.__dict__.items() if not k.startswith("_")}
+    listing_dict["finder_email"] = finder_email  # Only show if contact unlocked
+    listing_dict["contact_unlocked"] = contact_unlocked
+    return GloveListingDetail(**listing_dict)
 
 
 @router.get("/{listing_id}/payment-info", response_model=PaymentInfo)
